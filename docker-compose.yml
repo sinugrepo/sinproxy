@@ -1,0 +1,303 @@
+services:
+  warp-n1:
+    build: .
+    image: sinproxy/warp-socks:1.0
+    container_name: warp-n1
+    restart: unless-stopped
+    mem_limit: 256m
+    mem_reservation: 128m
+    labels:
+      - "autoheal=true"
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "2"
+    device_cgroup_rules:
+      - 'c 10:200 rwm'
+    cap_add: [NET_ADMIN, MKNOD, AUDIT_WRITE]
+    sysctls:
+      net.ipv6.conf.all.disable_ipv6: 0
+      net.ipv4.conf.all.src_valid_mark: 1
+    ports:
+      - "127.0.0.1:40001:1080"
+    environment:
+      - WARP_SLEEP=${WARP_SLEEP:-5}
+      - V6PIN_HOSTS=${V6PIN_HOSTS:-opencode.ai}
+      - V6ONLY=${V6ONLY:-1}
+    volumes:
+      - ./data-n1:/var/lib/cloudflare-warp
+
+  warp-n2:
+    build: .
+    image: sinproxy/warp-socks:1.0
+    container_name: warp-n2
+    restart: unless-stopped
+    mem_limit: 256m
+    mem_reservation: 128m
+    labels:
+      - "autoheal=true"
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "2"
+    device_cgroup_rules:
+      - 'c 10:200 rwm'
+    cap_add: [NET_ADMIN, MKNOD, AUDIT_WRITE]
+    sysctls:
+      net.ipv6.conf.all.disable_ipv6: 0
+      net.ipv4.conf.all.src_valid_mark: 1
+    ports:
+      - "127.0.0.1:40002:1080"
+    environment:
+      - WARP_SLEEP=${WARP_SLEEP:-5}
+      - V6PIN_HOSTS=${V6PIN_HOSTS:-opencode.ai}
+      - V6ONLY=${V6ONLY:-1}
+    volumes:
+      - ./data-n2:/var/lib/cloudflare-warp
+
+  warp-n3:
+    build: .
+    image: sinproxy/warp-socks:1.0
+    container_name: warp-n3
+    restart: unless-stopped
+    mem_limit: 256m
+    mem_reservation: 128m
+    labels:
+      - "autoheal=true"
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "2"
+    device_cgroup_rules:
+      - 'c 10:200 rwm'
+    cap_add: [NET_ADMIN, MKNOD, AUDIT_WRITE]
+    sysctls:
+      net.ipv6.conf.all.disable_ipv6: 0
+      net.ipv4.conf.all.src_valid_mark: 1
+    ports:
+      - "127.0.0.1:40003:1080"
+    environment:
+      - WARP_SLEEP=${WARP_SLEEP:-5}
+      - V6PIN_HOSTS=${V6PIN_HOSTS:-opencode.ai}
+      - V6ONLY=${V6ONLY:-1}
+    volumes:
+      - ./data-n3:/var/lib/cloudflare-warp
+
+  warp-n4:
+    build: .
+    image: sinproxy/warp-socks:1.0
+    container_name: warp-n4
+    restart: unless-stopped
+    mem_limit: 256m
+    mem_reservation: 128m
+    labels:
+      - "autoheal=true"
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "2"
+    device_cgroup_rules:
+      - 'c 10:200 rwm'
+    cap_add: [NET_ADMIN, MKNOD, AUDIT_WRITE]
+    sysctls:
+      net.ipv6.conf.all.disable_ipv6: 0
+      net.ipv4.conf.all.src_valid_mark: 1
+    ports:
+      - "127.0.0.1:40004:1080"
+    environment:
+      - WARP_SLEEP=${WARP_SLEEP:-5}
+      - V6PIN_HOSTS=${V6PIN_HOSTS:-opencode.ai}
+      - V6ONLY=${V6ONLY:-1}
+    volumes:
+      - ./data-n4:/var/lib/cloudflare-warp
+
+  warp-n5:
+    build: .
+    image: sinproxy/warp-socks:1.0
+    container_name: warp-n5
+    restart: unless-stopped
+    mem_limit: 256m
+    mem_reservation: 128m
+    labels:
+      - "autoheal=true"
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "2"
+    device_cgroup_rules:
+      - 'c 10:200 rwm'
+    cap_add: [NET_ADMIN, MKNOD, AUDIT_WRITE]
+    sysctls:
+      net.ipv6.conf.all.disable_ipv6: 0
+      net.ipv4.conf.all.src_valid_mark: 1
+    ports:
+      - "127.0.0.1:40005:1080"
+    environment:
+      - WARP_SLEEP=${WARP_SLEEP:-5}
+      - V6PIN_HOSTS=${V6PIN_HOSTS:-opencode.ai}
+      - V6ONLY=${V6ONLY:-1}
+    volumes:
+      - ./data-n5:/var/lib/cloudflare-warp
+
+  warp-n6:
+    build: .
+    image: sinproxy/warp-socks:1.0
+    container_name: warp-n6
+    restart: unless-stopped
+    mem_limit: 256m
+    mem_reservation: 128m
+    labels:
+      - "autoheal=true"
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "2"
+    device_cgroup_rules:
+      - 'c 10:200 rwm'
+    cap_add: [NET_ADMIN, MKNOD, AUDIT_WRITE]
+    sysctls:
+      net.ipv6.conf.all.disable_ipv6: 0
+      net.ipv4.conf.all.src_valid_mark: 1
+    ports:
+      - "127.0.0.1:40006:1080"
+    environment:
+      - WARP_SLEEP=${WARP_SLEEP:-5}
+      - V6PIN_HOSTS=${V6PIN_HOSTS:-opencode.ai}
+      - V6ONLY=${V6ONLY:-1}
+    volumes:
+      - ./data-n6:/var/lib/cloudflare-warp
+
+  warp-n7:
+    build: .
+    image: sinproxy/warp-socks:1.0
+    container_name: warp-n7
+    restart: unless-stopped
+    mem_limit: 256m
+    mem_reservation: 128m
+    labels:
+      - "autoheal=true"
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "2"
+    device_cgroup_rules:
+      - 'c 10:200 rwm'
+    cap_add: [NET_ADMIN, MKNOD, AUDIT_WRITE]
+    sysctls:
+      net.ipv6.conf.all.disable_ipv6: 0
+      net.ipv4.conf.all.src_valid_mark: 1
+    ports:
+      - "127.0.0.1:40007:1080"
+    environment:
+      - WARP_SLEEP=${WARP_SLEEP:-5}
+      - V6PIN_HOSTS=${V6PIN_HOSTS:-opencode.ai}
+      - V6ONLY=${V6ONLY:-1}
+    volumes:
+      - ./data-n7:/var/lib/cloudflare-warp
+
+  warp-n8:
+    build: .
+    image: sinproxy/warp-socks:1.0
+    container_name: warp-n8
+    restart: unless-stopped
+    mem_limit: 256m
+    mem_reservation: 128m
+    labels:
+      - "autoheal=true"
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "2"
+    device_cgroup_rules:
+      - 'c 10:200 rwm'
+    cap_add: [NET_ADMIN, MKNOD, AUDIT_WRITE]
+    sysctls:
+      net.ipv6.conf.all.disable_ipv6: 0
+      net.ipv4.conf.all.src_valid_mark: 1
+    ports:
+      - "127.0.0.1:40008:1080"
+    environment:
+      - WARP_SLEEP=${WARP_SLEEP:-5}
+      - V6PIN_HOSTS=${V6PIN_HOSTS:-opencode.ai}
+      - V6ONLY=${V6ONLY:-1}
+    volumes:
+      - ./data-n8:/var/lib/cloudflare-warp
+
+  warp-n9:
+    build: .
+    image: sinproxy/warp-socks:1.0
+    container_name: warp-n9
+    restart: unless-stopped
+    mem_limit: 256m
+    mem_reservation: 128m
+    labels:
+      - "autoheal=true"
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "2"
+    device_cgroup_rules:
+      - 'c 10:200 rwm'
+    cap_add: [NET_ADMIN, MKNOD, AUDIT_WRITE]
+    sysctls:
+      net.ipv6.conf.all.disable_ipv6: 0
+      net.ipv4.conf.all.src_valid_mark: 1
+    ports:
+      - "127.0.0.1:40009:1080"
+    environment:
+      - WARP_SLEEP=${WARP_SLEEP:-5}
+      - V6PIN_HOSTS=${V6PIN_HOSTS:-opencode.ai}
+      - V6ONLY=${V6ONLY:-1}
+    volumes:
+      - ./data-n9:/var/lib/cloudflare-warp
+
+  warp-n10:
+    build: .
+    image: sinproxy/warp-socks:1.0
+    container_name: warp-n10
+    restart: unless-stopped
+    mem_limit: 256m
+    mem_reservation: 128m
+    labels:
+      - "autoheal=true"
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "2"
+    device_cgroup_rules:
+      - 'c 10:200 rwm'
+    cap_add: [NET_ADMIN, MKNOD, AUDIT_WRITE]
+    sysctls:
+      net.ipv6.conf.all.disable_ipv6: 0
+      net.ipv4.conf.all.src_valid_mark: 1
+    ports:
+      - "127.0.0.1:40010:1080"
+    environment:
+      - WARP_SLEEP=${WARP_SLEEP:-5}
+      - V6PIN_HOSTS=${V6PIN_HOSTS:-opencode.ai}
+      - V6ONLY=${V6ONLY:-1}
+    volumes:
+      - ./data-n10:/var/lib/cloudflare-warp
+
+  autoheal:
+    image: willfarrell/autoheal:1.2.0
+    container_name: sinproxy-autoheal
+    restart: unless-stopped
+    environment:
+      - AUTOHEAL_CONTAINER_LABEL=autoheal
+      - AUTOHEAL_INTERVAL=30
+      - AUTOHEAL_START_PERIOD=0
+      - AUTOHEAL_DEFAULT_STOP_TIMEOUT=30
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+

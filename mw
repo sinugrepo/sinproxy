@@ -1,0 +1,72 @@
+#!/bin/bash
+# mw — one-command operator untuk sinproxy warp pool
+# Usage: ./mw run [-n 10] | status [-n 10] | stop | restart [-n 10] | recreate <warp-nX> | wipe-all
+set -e
+cd "$(dirname "$0")"
+
+N="${COUNT:-10}"
+BASE="${BASE_PORT:-40000}"
+BIND="${BIND_ADDR:-127.0.0.1}"
+MAX_ROUNDS="${MAX_ROUNDS:-3}"
+WAIT="${INITIAL_WAIT:-90}"
+
+cmd="${1:-status}"; shift || true
+if [ "$1" = "-n" ]; then N="$2"; fi
+
+case "$cmd" in
+  run)
+    if [ "$1" = "-n" ]; then N="$2"; fi
+    echo "[mw] generate compose for N=$N base=$BASE bind=$BIND"
+    python3 scripts/generate-compose.py -n "$N" --base-port "$BASE" --bind "$BIND"
+    for i in $(seq 1 "$N"); do mkdir -p "data-n$i"; done
+    echo "[mw] build + up..."
+    docker compose up -d --build
+    echo "[mw] waiting ${WAIT}s for registration..."
+    sleep "$WAIT"
+    echo "[mw] healthcheck:"
+    ./scripts/healthcheck.sh -n "$N" --base-port "$BASE" --bind "$BIND" --trace
+    echo "[mw] export pool:"
+    ./scripts/export-pool.sh -n "$N" --base-port "$BASE" --bind "$BIND"
+    ;;
+  status)
+    if [ "$1" = "-n" ]; then N="$2"; fi
+    docker compose ps
+    echo "---"
+    ./scripts/healthcheck.sh -n "$N" --base-port "$BASE" --bind "$BIND"
+    ;;
+  stop)
+    docker compose down
+    ;;
+  restart)
+    if [ "$1" = "-n" ]; then N="$2"; fi
+    docker compose down
+    docker compose up -d
+    echo "[mw] waiting ${WAIT}s..."
+    sleep "$WAIT"
+    ./scripts/healthcheck.sh -n "$N" --base-port "$BASE" --bind "$BIND"
+    ;;
+  recreate)
+    NODE="${1:?usage: ./mw recreate <warp-nX>}"
+    NUM="${NODE##*-n}"
+    echo "[mw] recreate $NODE (wipe data-n$NUM, others untouched)..."
+    docker compose stop "$NODE" && docker compose rm -f "$NODE"
+    docker run --rm -v "$PWD/data-n$NUM:/wipe" --user 0:0 alpine sh -c 'rm -rf /wipe/*'
+    docker compose up -d "$NODE"
+    echo "[mw] waiting 60s..."
+    sleep 60
+    ./scripts/healthcheck.sh -n "$N" --base-port "$BASE" --bind "$BIND"
+    ;;
+  wipe-all)
+    read -r -p "[mw] hapus SEMUA data-n* (registrasi ulang total)? ketik YES: " ANS
+    [ "$ANS" = "YES" ] || { echo "batal"; exit 1; }
+    docker compose down
+    for d in data-n*; do
+      [ -d "$d" ] || continue
+      docker run --rm -v "$PWD/$d:/wipe" --user 0:0 alpine sh -c 'rm -rf /wipe/*'
+    done
+    echo "[mw] wiped. jalankan ./mw run untuk registrasi ulang."
+    ;;
+  *)
+    echo "usage: ./mw run [-n N] | status [-n N] | stop | restart [-n N] | recreate <warp-nX> | wipe-all"
+    exit 1;;
+esac
