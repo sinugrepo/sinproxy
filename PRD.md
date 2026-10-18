@@ -315,16 +315,36 @@ docker exec warp-n3 warp-cli registration show
 
 ---
 
+## 19. Amendemen 2026-10-18 — HTTP forward proxy (fase 2)
+
+- Tiap node kini menjalankan 2 listener GOST: `socks5://:1080?udp=true` dan
+  `http://:8080` (env container `HTTP_PORT`, default 8080). Host port HTTP =
+  `HTTP_BASE_PORT+i` (default `BASE_PORT+1000` → 41001–41010), bind sama
+  dengan SOCKS (`BIND_ADDR`).
+- `scripts/healthcheck.sh --http` / `./mw status --http` probe lewat HTTP
+  (curl `-x http://…`). `./mw run` memverifikasi SOCKS5 + HTTP lalu menulis
+  dua pool file: `warp-pool.txt` (socks5) dan `warp-pool-http.txt` (http).
+- `PUBLIC_HOST` (opsional, default = `BIND_ADDR`) dipakai sebagai host di URI
+  pool file — isi IP publik VPS bila bind `0.0.0.0`.
+- Autentikasi masih none; S-01/S-02 tetap berlaku: jangan ekspos ke publik
+  tanpa firewall allowlist.
+
+---
+
 ## Lampiran A — `.env.example`
 
 ```bash
 COUNT=10
 BASE_PORT=40000
-BIND=127.0.0.1
+HTTP_BASE_PORT=41000
+BIND_ADDR=127.0.0.1
+PUBLIC_HOST=
 WARP_SLEEP=5
 WARP_LICENSE_KEY=
 MAX_ROUNDS=3
 V6ONLY=1
+V6PIN_HOSTS=opencode.ai
+INITIAL_WAIT=90
 ```
 
 ## Lampiran B — `warp-pool.txt` (contoh hasil)

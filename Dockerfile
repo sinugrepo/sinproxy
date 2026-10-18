@@ -2,7 +2,8 @@ FROM ubuntu:24.04
 
 ENV DEBIAN_FRONTEND=noninteractive \
     WARP_SLEEP=5 \
-    SOCKS_PORT=1080
+    SOCKS_PORT=1080 \
+    HTTP_PORT=8080
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
       ca-certificates curl gnupg lsb-release \
@@ -28,7 +29,7 @@ RUN GOST_ARCH="${TARGETARCH:-amd64}" \
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
-EXPOSE 1080
+EXPOSE 1080 8080
 
 HEALTHCHECK --interval=60s --timeout=15s --start-period=120s --retries=3 \
   CMD curl -s --max-time 10 https://www.cloudflare.com/cdn-cgi/trace | grep -q warp=on || exit 1

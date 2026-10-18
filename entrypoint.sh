@@ -89,11 +89,13 @@ for i in $(seq 1 12); do
   sleep 5
 done
 
-log "start gost socks5 on :${SOCKS_PORT:-1080}..."
+log "start gost socks5 on :${SOCKS_PORT:-1080} + http on :${HTTP_PORT:-8080}..."
 if [ "${V6ONLY:-1}" = "1" ]; then
   apply_v6only
   # Watchdog: warp-svc bisa menulis ulang tabel firewall saat reconnect;
   # pastikan aturan V6ONLY selalu ada (diam bila sudah OK).
   ( while sleep 60; do apply_v6only; done ) &
 fi
-exec gost -L "socks5://:${SOCKS_PORT:-1080}?udp=true"
+exec gost \
+  -L "socks5://:${SOCKS_PORT:-1080}?udp=true" \
+  -L "http://:${HTTP_PORT:-8080}"

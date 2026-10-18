@@ -1,44 +1,80 @@
 #!/bin/bash
-# mw — one-command operator untuk sinproxy warp pool
-# Usage: ./mw run [-n 10] | status [-n 10] | stop | restart [-n 10] | recreate <warp-nX> | wipe-all
+# mw — one-command operator untuk sinproxy warp pool (SOCKS5 + HTTP)
+# Usage: ./mw run [-n 10] | status [-n 10] [--http] | stop | restart [-n 10] | recreate <warp-nX> | wipe-all
 set -e
 cd "$(dirname "$0")"
 
+# Muat .env (bila ada). Variabel yang sudah di-set di process env menang,
+# mis. `COUNT=7 ./mw run` tetap override .env. Nilai di-quote/cr di-strip.
+load_env() {
+  [ -f .env ] || return 0
+  local line key val cur
+  while IFS= read -r line || [ -n "$line" ]; do
+    case "$line" in ''|\#*) continue;; esac
+    line="${line#export }"
+    case "$line" in *=*) ;; *) continue;; esac
+    key="$(printf '%s' "${line%%=*}" | tr -d ' \t\r')"
+    val="${line#*=}"
+    val="${val%$'\r'}"
+    case "$val" in
+      \"*\") val="${val#\"}"; val="${val%\"}";;
+      \'*\') val="${val#\'}"; val="${val%\'}";;
+    esac
+    case "$key" in ''|*[!A-Za-z0-9_]*) continue;; esac
+    eval "cur=\${$key+x}"
+    [ "$cur" = "x" ] && continue
+    export "$key=$val"
+  done < .env
+}
+load_env
+
 N="${COUNT:-10}"
 BASE="${BASE_PORT:-40000}"
+HTTP_BASE="${HTTP_BASE_PORT:-$((BASE + 1000))}"
 BIND="${BIND_ADDR:-127.0.0.1}"
+PUBLIC="${PUBLIC_HOST:-$BIND}"
 MAX_ROUNDS="${MAX_ROUNDS:-3}"
 WAIT="${INITIAL_WAIT:-90}"
 
 cmd="${1:-status}"; shift || true
-if [ "$1" = "-n" ]; then N="$2"; fi
+HTTP=0
+while [ $# -gt 0 ]; do
+  case "$1" in
+    -n) N="$2"; shift 2;;
+    --http) HTTP=1; shift;;
+    *) break;;
+  esac
+done
 
 case "$cmd" in
   run)
-    if [ "$1" = "-n" ]; then N="$2"; fi
-    echo "[mw] generate compose for N=$N base=$BASE bind=$BIND"
-    python3 scripts/generate-compose.py -n "$N" --base-port "$BASE" --bind "$BIND"
+    echo "[mw] generate compose for N=$N base=$BASE http-base=$HTTP_BASE bind=$BIND"
+    python3 scripts/generate-compose.py -n "$N" --base-port "$BASE" --http-base-port "$HTTP_BASE" --bind "$BIND"
     for i in $(seq 1 "$N"); do mkdir -p "data-n$i"; done
     echo "[mw] build + up..."
     docker compose up -d --build
     echo "[mw] waiting ${WAIT}s for registration..."
     sleep "$WAIT"
-    echo "[mw] healthcheck:"
+    echo "[mw] healthcheck (socks5):"
     ./scripts/healthcheck.sh -n "$N" --base-port "$BASE" --bind "$BIND" --trace
+    echo "[mw] healthcheck (http):"
+    ./scripts/healthcheck.sh -n "$N" --base-port "$BASE" --http-base-port "$HTTP_BASE" --bind "$BIND" --http
     echo "[mw] export pool:"
-    ./scripts/export-pool.sh -n "$N" --base-port "$BASE" --bind "$BIND"
+    ./scripts/export-pool.sh -n "$N" --base-port "$BASE" --http-base-port "$HTTP_BASE" --bind "$BIND" --host "$PUBLIC"
     ;;
   status)
-    if [ "$1" = "-n" ]; then N="$2"; fi
     docker compose ps
     echo "---"
-    ./scripts/healthcheck.sh -n "$N" --base-port "$BASE" --bind "$BIND"
+    if [ "$HTTP" = "1" ]; then
+      ./scripts/healthcheck.sh -n "$N" --base-port "$BASE" --http-base-port "$HTTP_BASE" --bind "$BIND" --http
+    else
+      ./scripts/healthcheck.sh -n "$N" --base-port "$BASE" --bind "$BIND"
+    fi
     ;;
   stop)
     docker compose down
     ;;
   restart)
-    if [ "$1" = "-n" ]; then N="$2"; fi
     docker compose down
     docker compose up -d
     echo "[mw] waiting ${WAIT}s..."
@@ -67,6 +103,6 @@ case "$cmd" in
     echo "[mw] wiped. jalankan ./mw run untuk registrasi ulang."
     ;;
   *)
-    echo "usage: ./mw run [-n N] | status [-n N] | stop | restart [-n N] | recreate <warp-nX> | wipe-all"
+    echo "usage: ./mw run [-n N] | status [-n N] [--http] | stop | restart [-n N] | recreate <warp-nX> | wipe-all"
     exit 1;;
 esac

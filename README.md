@@ -1,14 +1,17 @@
-# SinProxy — N WARP-CLI dalam Docker, dibungkus SOCKS5
+# SinProxy — N WARP-CLI dalam Docker, dibungkus SOCKS5 + HTTP
 
-Satu image (`sinproxy/warp-socks`), N container, N proxy SOCKS5 independen.
-Masing-masing container = 1 identitas WARP = 1 exit IP (best-effort, anycast).
+Satu image (`sinproxy/warp-socks`), N container, tiap container = 1 identitas
+WARP = 1 exit IP (best-effort, anycast) dengan 2 endpoint: SOCKS5 dan HTTP.
 
 ```text
-socks5://127.0.0.1:40001
-socks5://127.0.0.1:40002
-...
-socks5://127.0.0.1:40010
+socks5://127.0.0.1:40001        http://127.0.0.1:41001
+socks5://127.0.0.1:40002        http://127.0.0.1:41002
+...                             ...
+socks5://127.0.0.1:40010        http://127.0.0.1:41010
 ```
+
+Port HTTP = `HTTP_BASE_PORT + i` (default `BASE_PORT + 1000`), listener HTTP
+internal container di `:8080`.
 
 Detail desain: lihat `PRD.md`.
 
@@ -21,8 +24,9 @@ Detail desain: lihat `PRD.md`.
 
 ```bash
 cp .env.example .env        # opsional, default sudah N=10
-./mw run                    # generate compose -> up -> healthcheck -> warp-pool.txt
-./mw status                 # ps + probe semua port
+./mw run                    # generate compose -> up -> healthcheck (socks+http) -> pool files
+./mw status                 # ps + probe semua port SOCKS5
+./mw status --http          # ps + probe lewat HTTP proxy
 ./mw stop                   # down (data identitas dipertahankan)
 ./mw restart                 # down + up (identitas tetap, tanpa registrasi ulang)
 ./mw recreate warp-n4       # recreate 1 node buruk saja
@@ -37,7 +41,10 @@ Skala lain: `COUNT=7 ./mw run` atau `./mw run -n 7`.
 ./scripts/check-v6.sh   # 10 node: IPv6 unik + warp=on + IPv4-only diblokir
 curl -s --max-time 20 --socks5-hostname 127.0.0.1:40003 \
   https://www.cloudflare.com/cdn-cgi/trace | grep -E '^(warp|ip)='
+curl -s --max-time 20 -x http://127.0.0.1:41003 \
+  https://www.cloudflare.com/cdn-cgi/trace | grep -E '^(warp|ip)='
 curl -s --max-time 20 --socks5-hostname 127.0.0.1:40003 https://api64.ipify.org; echo
+./scripts/healthcheck.sh -n 10 --http      # tabel probe via HTTP proxy
 docker exec warp-n3 warp-cli --accept-tos status
 ```
 
@@ -51,18 +58,25 @@ docker exec warp-n3 warp-cli --accept-tos status
 | File | Fungsi |
 |------|--------|
 | `Dockerfile` | image: ubuntu 24.04 + warp-cli resmi + gost v3 (multi-arch amd64/arm64) |
-| `entrypoint.sh` | TUN -> dbus -> warp-svc -> register(sekali)/connect -> gost :1080 |
-| `scripts/generate-compose.py` | generate N service, port berurutan |
-| `scripts/healthcheck.sh` | probe warp=on + exit IP + ms per port |
+| `entrypoint.sh` | TUN -> dbus -> warp-svc -> register(sekali)/connect -> gost :1080 (SOCKS5) + :8080 (HTTP) |
+| `scripts/generate-compose.py` | generate N service, port SOCKS5 + HTTP berurutan |
+| `scripts/healthcheck.sh` | probe warp=on + exit IP + ms per port (SOCKS5, atau HTTP via `--http`) |
 | `scripts/check-v6.sh` | verifikasi IPv6-only: trace v6 unik + api64 + pastikan api.ipify (v4-only) diblokir |
-| `scripts/export-pool.sh` | tulis warp-pool.txt |
+| `scripts/export-pool.sh` | tulis warp-pool.txt (socks5) + warp-pool-http.txt (http) |
 | `mw` | operator satu perintah |
-| `warp-pool.txt` | daftar proxy siap pakai (di-generate, jangan commit) |
+| `warp-pool.txt` | daftar proxy SOCKS5 siap pakai (di-generate, jangan commit) |
+| `warp-pool-http.txt` | daftar proxy HTTP siap pakai (di-generate, jangan commit) |
 | `data-n*/` | identitas WARP per node (jangan commit, jangan hapus sembarangan) |
 
 ## Catatan operasional
 
 - Bind default `127.0.0.1` — jangan buka ke publik tanpa auth + firewall.
+  (Deploy VPS: `BIND_ADDR=0.0.0.0` di `.env`; SOCKS5 & HTTP masih tanpa auth.)
+- Port SOCKS5 = `BASE_PORT+i`, port HTTP = `HTTP_BASE_PORT+i` (default
+  `BASE_PORT+1000` → 41001–41010). Salah satu host port bentrok ⇒ container
+  gagal start; cek `ss -lnt` di VPS.
+- Isi `PUBLIC_HOST=<ip-publik-vps>` di `.env` bila bind `0.0.0.0`, supaya
+  `warp-pool.txt`/`warp-pool-http.txt` berisi IP VPS, bukan `0.0.0.0`.
 - File `data-n*` root-owned: wipe selalu via `./mw recreate`, jangan `rm` manual.
 - Exit IP bisa duplikat antar node (anycast Cloudflare) — normal. IPv6 trace unik
   per node, IPv4 egress sering berbagi anycast yang sama.

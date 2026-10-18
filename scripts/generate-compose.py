@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-"""Generate docker-compose.yml untuk N warp-socks node.
-Usage: generate-compose.py -n 10 [--base-port 40000] [--bind 127.0.0.1] [-o docker-compose.yml]
+"""Generate docker-compose.yml untuk N warp-socks node (SOCKS5 + HTTP).
+Usage: generate-compose.py -n 10 [--base-port 40000] [--http-base-port 41000] [--bind 127.0.0.1] [-o docker-compose.yml]
 """
 import argparse
 
@@ -26,6 +26,7 @@ SERVICE_TPL = """  warp-n{i}:
       net.ipv4.conf.all.src_valid_mark: 1
     ports:
       - "{bind}:{port}:1080"
+      - "{bind}:{http_port}:8080"
     environment:
       - WARP_SLEEP=${{WARP_SLEEP:-5}}
       - V6PIN_HOSTS=${{V6PIN_HOSTS:-opencode.ai}}
@@ -51,17 +52,23 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("-n", "--count", type=int, default=10)
     ap.add_argument("--base-port", type=int, default=40000)
+    ap.add_argument("--http-base-port", type=int, default=None,
+                    help="default: base-port + 1000")
     ap.add_argument("--bind", default="127.0.0.1")
     ap.add_argument("-o", "--output", default="docker-compose.yml")
     a = ap.parse_args()
+    http_base = a.http_base_port if a.http_base_port is not None else a.base_port + 1000
 
     out = ["services:"]
     for i in range(1, a.count + 1):
-        out.append(SERVICE_TPL.format(i=i, bind=a.bind, port=a.base_port + i))
+        out.append(SERVICE_TPL.format(i=i, bind=a.bind, port=a.base_port + i,
+                                      http_port=http_base + i))
     out.append(AUTOHEAL_SVC)
     with open(a.output, "w") as f:
         f.write("\n".join(out) + "\n")
-    print(f"wrote {a.output}: {a.count} services, ports {a.bind}:{a.base_port+1}-{a.base_port+a.count}")
+    print(f"wrote {a.output}: {a.count} services, "
+          f"socks {a.bind}:{a.base_port+1}-{a.base_port+a.count}, "
+          f"http {a.bind}:{http_base+1}-{http_base+a.count}")
 
 if __name__ == "__main__":
     main()

@@ -21,6 +21,7 @@ services:
       net.ipv4.conf.all.src_valid_mark: 1
     ports:
       - "127.0.0.1:40001:1080"
+      - "127.0.0.1:41001:8080"
     environment:
       - WARP_SLEEP=${WARP_SLEEP:-5}
       - V6PIN_HOSTS=${V6PIN_HOSTS:-opencode.ai}
@@ -50,6 +51,7 @@ services:
       net.ipv4.conf.all.src_valid_mark: 1
     ports:
       - "127.0.0.1:40002:1080"
+      - "127.0.0.1:41002:8080"
     environment:
       - WARP_SLEEP=${WARP_SLEEP:-5}
       - V6PIN_HOSTS=${V6PIN_HOSTS:-opencode.ai}
@@ -79,6 +81,7 @@ services:
       net.ipv4.conf.all.src_valid_mark: 1
     ports:
       - "127.0.0.1:40003:1080"
+      - "127.0.0.1:41003:8080"
     environment:
       - WARP_SLEEP=${WARP_SLEEP:-5}
       - V6PIN_HOSTS=${V6PIN_HOSTS:-opencode.ai}
@@ -108,6 +111,7 @@ services:
       net.ipv4.conf.all.src_valid_mark: 1
     ports:
       - "127.0.0.1:40004:1080"
+      - "127.0.0.1:41004:8080"
     environment:
       - WARP_SLEEP=${WARP_SLEEP:-5}
       - V6PIN_HOSTS=${V6PIN_HOSTS:-opencode.ai}
@@ -137,6 +141,7 @@ services:
       net.ipv4.conf.all.src_valid_mark: 1
     ports:
       - "127.0.0.1:40005:1080"
+      - "127.0.0.1:41005:8080"
     environment:
       - WARP_SLEEP=${WARP_SLEEP:-5}
       - V6PIN_HOSTS=${V6PIN_HOSTS:-opencode.ai}
@@ -166,6 +171,7 @@ services:
       net.ipv4.conf.all.src_valid_mark: 1
     ports:
       - "127.0.0.1:40006:1080"
+      - "127.0.0.1:41006:8080"
     environment:
       - WARP_SLEEP=${WARP_SLEEP:-5}
       - V6PIN_HOSTS=${V6PIN_HOSTS:-opencode.ai}
@@ -195,6 +201,7 @@ services:
       net.ipv4.conf.all.src_valid_mark: 1
     ports:
       - "127.0.0.1:40007:1080"
+      - "127.0.0.1:41007:8080"
     environment:
       - WARP_SLEEP=${WARP_SLEEP:-5}
       - V6PIN_HOSTS=${V6PIN_HOSTS:-opencode.ai}
@@ -224,6 +231,7 @@ services:
       net.ipv4.conf.all.src_valid_mark: 1
     ports:
       - "127.0.0.1:40008:1080"
+      - "127.0.0.1:41008:8080"
     environment:
       - WARP_SLEEP=${WARP_SLEEP:-5}
       - V6PIN_HOSTS=${V6PIN_HOSTS:-opencode.ai}
@@ -253,6 +261,7 @@ services:
       net.ipv4.conf.all.src_valid_mark: 1
     ports:
       - "127.0.0.1:40009:1080"
+      - "127.0.0.1:41009:8080"
     environment:
       - WARP_SLEEP=${WARP_SLEEP:-5}
       - V6PIN_HOSTS=${V6PIN_HOSTS:-opencode.ai}
@@ -282,6 +291,7 @@ services:
       net.ipv4.conf.all.src_valid_mark: 1
     ports:
       - "127.0.0.1:40010:1080"
+      - "127.0.0.1:41010:8080"
     environment:
       - WARP_SLEEP=${WARP_SLEEP:-5}
       - V6PIN_HOSTS=${V6PIN_HOSTS:-opencode.ai}

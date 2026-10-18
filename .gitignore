@@ -1,6 +1,7 @@
 data-n*/
 health.jsonl
 v6pool.json
+warp-pool-http.txt
 
 *.log
 .env
